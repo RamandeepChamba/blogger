@@ -1,0 +1,7 @@
+<form action="/blog/add" method="post">
+  <input type="text" name="blog[id]" value="<?=$blog['id']?>" hidden>
+  <textarea name="blog[blog]" rows="8" cols="80"
+    placeholder="Start writing blog"
+    autofocus><?=$blog['blog'] ?? ''?></textarea>
+  <button type="submit" name="add">Add</button>
+</form>

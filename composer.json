@@ -1,0 +1,8 @@
+{
+  "autoload": {
+    "psr-4": {
+      "Raman\\": "classes/Raman/",
+      "Blog\\": "classes/Blog/"
+    }
+  }
+}
