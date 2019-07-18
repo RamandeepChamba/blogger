@@ -1,0 +1,4 @@
+RewriteEngine On
+RewriteRule ^includes|templates|classes/.*$ index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ index.php [QSA,L]
