@@ -45,7 +45,7 @@ class Blog
   public function save()
   {
     $blog['id'] = htmlspecialchars($_POST['blog']['id']);
-    $blog['blog'] = htmlspecialchars($_POST['blog']['blog']);
+    $blog['blog'] = $_POST['blog']['blog'];
 
     // If id specified check if blog of that id is there
     if (strlen($blog['blog']) !== 0
