@@ -5,13 +5,11 @@
       "Blog\\": "classes/Blog/"
     }
   },
-  "require": {
-    "ext-mysql": "*"
-  },
-  "require": {
-  	"ext-gettext": "*"
-  },
   "require-dev": {
-  	"heroku/heroku-buildpack-php": "*"
+    "heroku/heroku-buildpack-php": "*"
+  },
+  "require": {
+    "ext-gettext": "*",
+    "tinymce/tinymce": ">=4"
   }
 }
