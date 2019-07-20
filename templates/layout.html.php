@@ -9,7 +9,7 @@
   <body>
     <?php include __DIR__ . '/nav.html.php'; ?>
     <?=$output?>
-    <script src="/vendor/tinymce/tinymce/tinymce.min.js"></script>
+    <script src="/tinymce/tinymce/tinymce.min.js"></script>
     <script>
       tinymce.init({
         selector: '#blog'

@@ -9,7 +9,6 @@
     "heroku/heroku-buildpack-php": "*"
   },
   "require": {
-    "ext-gettext": "*",
-    "tinymce/tinymce": ">=4"
+    "ext-gettext": "*"
   }
 }
