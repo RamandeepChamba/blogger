@@ -41,7 +41,7 @@ class EntryPoint
     $controller = $routes[$this->route][$this->method]['controller'];
     $action = $routes[$this->route][$this->method]['action'];
     $page = $controller->$action();
-    $title = $page['title'];
+    $title = $page['title'] ?? 'Untitled';
 
     if (isset($page['template'])) {
       if (isset($page['variables'])) {
@@ -49,12 +49,20 @@ class EntryPoint
       } else {
         $output = $this->loadTemplate($page['template']);
       }
-    } else {
+
+      echo $this->loadTemplate('layout.html.php', [
+        'output' => $output,
+        'title' => $title
+      ]);
+    } else if (isset($page['output'])) {
       $output = $page['output'];
+
+      echo $this->loadTemplate('layout.html.php', [
+        'output' => $output,
+        'title' => $title
+      ]);
+    } else if (isset($page['file'])) {
+      include __DIR__ . '/../../includes/' . $page['file'];
     }
-    echo $this->loadTemplate('layout.html.php', [
-      'output' => $output,
-      'title' => $title
-    ]);
   }
 }

@@ -39,6 +39,12 @@ class BlogRoutes implements Routes
           'action' => 'delete'
         ]
       ],
+      'blog/upload' => [
+        'POST' => [
+          'controller' => $blogController,
+          'action' => 'upload'
+        ]
+      ],
       '' => [
         'GET' => [
           'controller' => $blogController,

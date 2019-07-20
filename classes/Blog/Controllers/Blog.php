@@ -76,4 +76,11 @@ class Blog
       ];
     }
   }
+
+  public function upload()
+  {
+    return [
+      'file' => 'upload.php'
+    ];
+  }
 }
