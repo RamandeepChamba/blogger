@@ -14,43 +14,11 @@
       tinymce.init({
         selector: '#blog',
         plugins: 'link, image',
-        toolbar: 'bold italic link image',
+        // toolbar: 'bold italic link image',
         default_link_target: "_blank",
         link_assume_external_targets: 'https',
         image_uploadtab: true,
-        images_upload_url: '/blog/upload',
-
-        images_upload_handler : function(blobInfo, success, failure) {
-    			var xhr, formData;
-
-    			xhr = new XMLHttpRequest();
-    			xhr.withCredentials = false;
-    			xhr.open('POST', '/blog/upload');
-
-    			xhr.onload = function() {
-    				var json;
-
-    				if (xhr.status != 200) {
-    					failure('HTTP Error: ' + xhr.status);
-    					return;
-    				}
-
-    				json = JSON.parse(xhr.response);
-
-            if (!json || !json.location) {
-    					failure('Invalid JSON: ' + xhr.responseText);
-    					return;
-    				}
-
-    				success(json.location);
-    			};
-
-    			formData = new FormData();
-    			formData.append('file', blobInfo.blob(), blobInfo.filename());
-
-    			xhr.send(formData);
-    		},
-
+        images_upload_url: '/blog/upload'
       });
     </script>
   </body>

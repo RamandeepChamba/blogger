@@ -2,7 +2,8 @@
   /***************************************************
    * Only these origins are allowed to upload images *
    ***************************************************/
-  $accepted_origins = array("http://localhost", "http://blogger", "http://192.168.1.1", "http://example.com");
+  $accepted_origins = array("http://localhost", "http://blogger",
+    "http://192.168.1.1", "http://example.com");
 
   /*********************************************
    * Change this line to set the upload folder *
@@ -11,6 +12,7 @@
 
   reset($_FILES);
   $temp = current($_FILES);
+
   if (is_uploaded_file($temp['tmp_name'])) {
     if (isset($_SERVER['HTTP_ORIGIN'])) {
       // same-origin requests won't set an origin. If the origin is set, it must be valid.
@@ -29,6 +31,9 @@
     // header('Access-Control-Allow-Credentials: true');
     // header('P3P: CP="There is no P3P policy."');
 
+    // Separate path elements
+    $path_parts = pathinfo($temp['name']);
+
     // Sanitize input
     if (preg_match("/([^\w\s\d\-_~,;:\[\]\(\).])|([\.]{2,})/", $temp['name'])) {
         header("HTTP/1.1 400 Invalid file name.");
@@ -36,13 +41,15 @@
     }
 
     // Verify extension
-    if (!in_array(strtolower(pathinfo($temp['name'], PATHINFO_EXTENSION)), array("gif", "jpg", "png"))) {
+    if (!in_array(strtolower($path_parts['extension']), array("gif", "jpg", "png"))) {
         header("HTTP/1.1 400 Invalid extension.");
         return;
     }
 
     // Accept upload if there was no origin, or if it is an accepted origin
-    $filetowrite = $imageFolder . $temp['name'];
+    // Give unique filename so can't overwrite
+    $filetowrite = $imageFolder . $path_parts['filename'] . '-' .
+      time() . '.' . $path_parts['extension'];
     move_uploaded_file($temp['tmp_name'], $filetowrite);
 
     // Respond to the successful upload with JSON.
