@@ -8,6 +8,12 @@
   /*********************************************
    * Change this line to set the upload folder *
    *********************************************/
+
+  // Create upload image folder if not there
+  if (!file_exists(__DIR__ . '/../uploads/images')) {
+    mkdir(__DIR__ . '/../uploads/images', 0777, true);
+  }
+
   $imageFolder = "uploads/images/";
 
   reset($_FILES);
