@@ -2,17 +2,20 @@
 namespace Blog\Controllers;
 use \Raman\DatabaseTable;
 use \Raman\Authentication;
+use \Raman\Helpers;
 
 class Blog
 {
   private $blogsTable;
   private $authentication;
+  private $helpers;
 
   public function __construct(DatabaseTable $blogsTable,
     Authentication $authentication)
   {
     $this->blogsTable = $blogsTable;
     $this->authentication = $authentication;
+    $this->helpers = new Helpers();
   }
 
   public function home()
@@ -38,7 +41,8 @@ class Blog
       'template' => 'showBlogs.html.php',
       'variables' => [
         'blogs' => $blogs,
-        'user_id' => $this->authentication->getUser()['id']
+        'user_id' => $this->authentication->getUser()['id'],
+        'helpers' => $this->helpers
       ]
     ];
   }

@@ -13,8 +13,10 @@
       <em><strong>On:</strong> <?=date('d/m/Y', strtotime($blog['created_at']))?></em>
       <br>
       <em><strong>Last Updated:</strong>
-        <?=number_format((time() - strtotime($blog['last_updated'])) / 60)?>
-        minutes ago
+        <?php
+        $seconds = time() - strtotime($blog['last_updated']);
+        echo $helpers->timeElapsed($seconds) . ' ago';
+        ?>
       </em>
     </li>
     <?php if ($user_id == $blog['user_id']) { ?>
