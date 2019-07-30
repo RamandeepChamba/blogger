@@ -52,7 +52,6 @@
         return;
     }
 
-    // Accept upload if there was no origin, or if it is an accepted origin
     // Give unique filename so can't overwrite
     $filetowrite = $imageFolder . $path_parts['filename'] . '-' .
       time() . '.' . $path_parts['extension'];
