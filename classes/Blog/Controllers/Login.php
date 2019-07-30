@@ -2,17 +2,18 @@
 
 namespace Blog\Controllers;
 use \Raman\DatabaseTable;
+use \Raman\Authentication;
 use \Raman\Helpers;
 
 class Login
 {
 
-  private $usersTable;
+  private $authentication;
   private $helpers;
 
-  function __construct(DatabaseTable $usersTable)
+  function __construct(Authentication $authentication)
   {
-    $this->usersTable = $usersTable;
+    $this->authentication = $authentication;
     $this->helpers = new Helpers();
   }
 
@@ -41,13 +42,9 @@ class Login
       // Login
       if (!isset($errors))
       {
-        // Fetch user (if any)
-        $fetched_user = $this->usersTable->fetchByCol('name', $user['name']);
-
-        if (count($fetched_user)
-          && password_verify($user['password'], $fetched_user[0]['password']))
+        if ($this->authentication->login($user['name'], $user['password']))
         {
-
+          header('location: /');
         }
         else {
           $errors[] = 'Invalid Username / Password';
@@ -68,5 +65,11 @@ class Login
     else {
       header('HTTP/1.1 403 Forbidden');
     }
+  }
+
+  public function logout()
+  {
+    session_destroy();
+    header('location: /');
   }
 }

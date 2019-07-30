@@ -1,25 +1,44 @@
 <?php
 namespace Blog\Controllers;
 use \Raman\DatabaseTable;
+use \Raman\Authentication;
 
 class Blog
 {
   private $blogsTable;
+  private $authentication;
 
-  public function __construct(DatabaseTable $blogsTable)
+  public function __construct(DatabaseTable $blogsTable,
+    Authentication $authentication)
   {
     $this->blogsTable = $blogsTable;
+    $this->authentication = $authentication;
   }
 
   public function home()
   {
-    $blogs = $this->blogsTable->fetchAll();
+    // Join table
+    $reference = [
+      'table' => [
+        'type' => 'referenced',
+        'name' => 'users'
+      ],
+      'primary' => 'id',
+      'foreign' => 'user_id'
+    ];
+
+    // Fields to fetch
+    $fields = ['blogs.id as id, title, description, user_id,
+      created_at, last_updated, name'];
+
+    $blogs = $this->blogsTable->join($reference, $fields);
 
     return [
       'title' => 'Blogger | Home',
       'template' => 'showBlogs.html.php',
       'variables' => [
-        'blogs' => $blogs
+        'blogs' => $blogs,
+        'user_id' => $this->authentication->getUser()['id']
       ]
     ];
   }
@@ -45,21 +64,46 @@ class Blog
   public function save()
   {
     $blog['id'] = htmlspecialchars($_POST['blog']['id']);
+    $blog['title'] = htmlspecialchars($_POST['blog']['title']);
+    $blog['description'] = htmlspecialchars($_POST['blog']['description']);
     $blog['blog'] = $_POST['blog']['blog'];
+    // Fetch current user id
+    $blog['user_id'] = $this->authentication->getUser()['id'];
+
+    foreach ($blog as $key => $value) {
+      if (in_array($key, ['title', 'description', 'blog'])
+        && empty($value))
+      {
+        $errors[] = ucwords($key) . ' required';
+      }
+    }
 
     // If id specified check if blog of that id is there
-    if (strlen($blog['blog']) !== 0
-      && ((strlen($blog['id']) == 0)
-        || (strlen($blog['id']) !== 0
-          && $this->blogsTable->fetch($blog['id'])))
-      && $this->blogsTable->save($blog))
+    if (!isset($errors)
+      && (!empty($blog['id'])
+        && !$this->blogsTable->fetch($blog['id'])))
+    {
+      $errors[] = 'No blog found for editing';
+    }
+
+    // Save blog to db
+    if (!isset($errors) && $this->blogsTable->save($blog) == 0) {
+      $errors[] = 'Failed to add blog';
+    }
+
+    if (!isset($errors))
     {
       header('location: /');
     }
     else {
+      unset($blog['user_id']);
       return [
-        'title' => 'Blogger | Error',
-        'output' => 'Failed to add Blog'
+        'title' => 'Add Blog | errors',
+        'template' => 'addBlog.html.php',
+        'variables' => [
+          'blog' => $blog,
+          'errors' => $errors
+        ]
       ];
     }
   }
@@ -71,7 +115,7 @@ class Blog
     }
     else {
       return [
-        'title' => 'Blogger | Error',
+        'title' => 'Blogger | errors',
         'output' => 'Failed to delete Blog'
       ];
     }
@@ -81,6 +125,31 @@ class Blog
   {
     return [
       'file' => 'upload.php'
+    ];
+  }
+
+  public function view()
+  {
+    $id = isset($_GET['id']) ? htmlspecialchars($_GET['id']) : NULL;
+
+    if (isset($id)) {
+      // Fetch blog
+      $blog = $this->blogsTable->fetch($id);
+
+      if (!$blog) {
+        $errors[] = 'Blog not found';
+      }
+    } else {
+      $errors[] = 'Invalid request';
+    }
+
+    return [
+      'title' => $blog['title'] ?? null,
+      'template' => 'blog.html.php',
+      'variables' => [
+        'blog' => $blog ?? null,
+        'errors' => $errors ?? null
+      ]
     ];
   }
 }

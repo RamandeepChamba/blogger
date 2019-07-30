@@ -113,4 +113,40 @@ class DatabaseTable
     // Check if query succeeded
     return $query->rowCount();
   }
+
+  // Join
+  /*
+  $reference = [
+    'table' => [
+      'type' => 'referenc(ed/ing)',
+      'name' => 'tablename'
+    ],
+    // if referenced
+    foreign => 'foreign key name of referencing table',
+    primary => 'primary key name of referenced table'
+    // if referencing
+    foreign => 'foreign key name of referencing table'
+  ]
+  */
+  public function join($reference, $fields = '*')
+  {
+    $refName = $reference['table']['name'];
+    $refType = $reference['table']['type'];
+    $foreign = $reference['foreign'];
+    $primary = $reference['primary'] ?? $this->primaryKey;
+    $fields = $fields !== '*' ? implode(',', $fields) : $fields;
+
+    $sql = "SELECT $fields FROM $this->table INNER JOIN $refName
+      ON ";
+
+    if ($refType == 'referenced') {
+      $sql .= "$this->table.$foreign = $refName.$primary";
+    }
+    else {
+      $sql .= "$this->table.$primary = $refName.$foreign";
+    }
+
+    $query = $this->query($sql);
+    return $query->fetchAll();
+  }
 }

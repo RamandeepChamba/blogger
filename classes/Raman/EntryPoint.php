@@ -37,6 +37,14 @@ class EntryPoint
       $this->method = 'GET';
     }
 
+    // Error if page requires login but not logged in
+    if (isset($routes[$this->route]['login'])
+      && !$this->routes->getAuthentication()->isLoggedIn())
+    {
+      header('HTTP/1.1 403 Forbidden');
+      return;
+    }
+
     // Run action from particular controller according to route & method
     $controller = $routes[$this->route][$this->method]['controller'];
     $action = $routes[$this->route][$this->method]['action'];
@@ -52,14 +60,16 @@ class EntryPoint
 
       echo $this->loadTemplate('layout.html.php', [
         'output' => $output,
-        'title' => $title
+        'title' => $title,
+        'loggedIn' => $this->routes->getAuthentication()->isLoggedIn()
       ]);
     } else if (isset($page['output'])) {
       $output = $page['output'];
 
       echo $this->loadTemplate('layout.html.php', [
         'output' => $output,
-        'title' => $title
+        'title' => $title,
+        'loggedIn' => $this->routes->getAuthentication()->isLoggedIn()
       ]);
     } else if (isset($page['file'])) {
       include __DIR__ . '/../../includes/' . $page['file'];

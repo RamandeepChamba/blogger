@@ -1,13 +1,16 @@
 <?php
 
+use \Raman\EntryPoint;
+use \Blog\BlogRoutes;
+
 try {
   require __DIR__ . '/vendor/autoload.php';
 
   $route = ltrim(strtok($_SERVER['REQUEST_URI'], '?'), '/');
-  $entryPoint = new \Raman\EntryPoint(
+  $entryPoint = new EntryPoint(
     $route,
     $_SERVER['REQUEST_METHOD'],
-    new \Blog\BlogRoutes());
+    new BlogRoutes());
   $entryPoint->run();
 }
 catch (\PDOException $e) {

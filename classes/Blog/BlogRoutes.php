@@ -2,6 +2,7 @@
 namespace Blog;
 use \Raman\DatabaseTable;
 use \Raman\Routes;
+use \Raman\Authentication;
 use \Blog\Controllers\Blog;
 use \Blog\Controllers\Register;
 use \Blog\Controllers\Login;
@@ -11,8 +12,7 @@ class BlogRoutes implements Routes
 
   private $blogsTable;
   private $usersTable;
-  private $registerController;
-  private $loginController;
+  private $authentication;
 
   public function __construct()
   {
@@ -20,68 +20,91 @@ class BlogRoutes implements Routes
 
     $this->blogsTable = new DatabaseTable($pdo, 'blogs', 'id');
     $this->usersTable = new DatabaseTable($pdo, 'users', 'id');
-    $this->blogController = new Blog($this->blogsTable);
-    $this->registerController = new Register($this->usersTable);
-    $this->loginController = new Login($this->usersTable);
+    $this->authentication = new Authentication($this->usersTable, 'name', 'password');
   }
 
   public function getRoutes(): array
   {
+    $blogController = new Blog($this->blogsTable, $this->authentication);
+    $registerController = new Register($this->usersTable, $this->authentication);
+    $loginController = new Login($this->authentication);
+
     // Routing
     $routes = [
       // Register
       'user/register' => [
         'GET' => [
-          'controller' => $this->registerController,
+          'controller' => $registerController,
           'action' => 'registerForm'
         ],
         'POST' => [
-          'controller' => $this->registerController,
+          'controller' => $registerController,
           'action' => 'register'
         ]
       ],
       // Login
       'user/login' => [
         'GET' => [
-          'controller' => $this->loginController,
+          'controller' => $loginController,
           'action' => 'loginForm'
         ],
         'POST' => [
-          'controller' => $this->loginController,
+          'controller' => $loginController,
           'action' => 'login'
         ]
+      ],
+      'user/logout' => [
+        'GET' => [
+          'controller' => $loginController,
+          'action' => 'logout'
+        ],
+        'login' => true
       ],
       // Blog
       'blog/add' => [
         'GET' => [
-          'controller' => $this->blogController,
+          'controller' => $blogController,
           'action' => 'edit'
         ],
         'POST' => [
-          'controller' => $this->blogController,
+          'controller' => $blogController,
           'action' => 'save'
+        ],
+        'login' => true
+      ],
+      'blog/view' => [
+        'GET' => [
+          'controller' => $blogController,
+          'action' => 'view'
         ]
       ],
       'blog/delete' => [
         'GET' => [
-          'controller' => $this->blogController,
+          'controller' => $blogController,
           'action' => 'delete'
-        ]
+        ],
+        'login' => true
       ],
       'blog/upload' => [
         'POST' => [
-          'controller' => $this->blogController,
+          'controller' => $blogController,
           'action' => 'upload'
-        ]
+        ],
+        'login' => true
       ],
       '' => [
         'GET' => [
-          'controller' => $this->blogController,
+          'controller' => $blogController,
           'action' => 'home'
         ]
       ]
     ];
 
     return $routes;
+  }
+
+  public function getAuthentication(): Authentication
+  {
+    return $this->authentication;
   }
 }

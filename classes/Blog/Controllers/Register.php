@@ -2,17 +2,20 @@
 
 namespace Blog\Controllers;
 use \Raman\DatabaseTable;
+use \Raman\Authentication;
 use \Raman\Helpers;
 
 class Register
 {
 
   private $usersTable;
+  private $authentication;
   private $helpers;
 
-  function __construct(DatabaseTable $usersTable)
+  function __construct(DatabaseTable $usersTable, Authentication $authentication)
   {
     $this->usersTable = $usersTable;
+    $this->authentication = $authentication;
     $this->helpers = new Helpers();
   }
 
@@ -43,6 +46,7 @@ class Register
 
       // Check if username available
       if (!isset($errors)) {
+        $user['name'] = strtolower($user['name']);
         count($this->usersTable->fetchByCol('name', $user['name']))
           ? $errors[] = 'Username not available'
           : null;
@@ -62,6 +66,8 @@ class Register
           'password' => password_hash($user['password'], PASSWORD_DEFAULT)
         ])))
         {
+          // Login user automatically
+          $this->authentication->login($user['name'], $user['password']);
           header('location: /');
         }
         else {
