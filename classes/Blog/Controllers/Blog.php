@@ -50,6 +50,9 @@ class Blog
   // Render add/edit blog form
   public function edit()
   {
+    // Check if user has permission
+      // TODO
+
     // If it's an edit request
     if (isset($_GET['id'])) {
       // Check if there's a blog in db with that id
@@ -67,6 +70,9 @@ class Blog
   // Add/update blog to database
   public function save()
   {
+    // Check if user has permission
+      // TODO
+
     $blog['id'] = htmlspecialchars($_POST['blog']['id']);
     $blog['title'] = htmlspecialchars($_POST['blog']['title']);
     $blog['description'] = htmlspecialchars($_POST['blog']['description']);
@@ -114,6 +120,8 @@ class Blog
 
   public function delete()
   {
+    // Check if user has permission
+      // TODO
     if ($this->blogsTable->delete($_GET['id'])) {
       header('location: /');
     }
@@ -137,8 +145,22 @@ class Blog
     $id = isset($_GET['id']) ? htmlspecialchars($_GET['id']) : NULL;
 
     if (isset($id)) {
-      // Fetch blog
-      $blog = $this->blogsTable->fetch($id);
+      // Fetch current user Id
+      $userId = $this->authentication->getUser()['id'] ?? NULL;
+      // Fetch blog (blog, user info, comments)
+      // $blog = $this->blogsTable->fetch($id);
+      $fields = implode(',',
+        [
+          'blogs.id as blog_id', 'blog', 'title',
+          'description', 'comment', 'comments.id as comment_id', 'name'
+        ]);
+      $sql = "SELECT $fields FROM blogs JOIN comments
+        ON blogs.id = comments.blog_id
+        JOIN users ON users.id = comments.user_id
+        WHERE blogs.id = :blog_id
+        AND comments.parent_id IS NULL";
+      $params = ['blog_id' => $id];
+      $blog = $this->blogsTable->query($sql, $params)->fetchAll();
 
       if (!$blog) {
         $errors[] = 'Blog not found';
@@ -147,12 +169,17 @@ class Blog
       $errors[] = 'Invalid request';
     }
 
+    if (!isset($errors) && isset($_GET['errors'])) {
+      $errors = unserialize($_GET['errors']);
+    }
+
     return [
-      'title' => $blog['title'] ?? null,
+      'title' => $blog[0]['title'] ?? null,
       'template' => 'blog.html.php',
       'variables' => [
         'blog' => $blog ?? null,
-        'errors' => $errors ?? null
+        'errors' => $errors ?? null,
+        'user_id' => $userId
       ]
     ];
   }

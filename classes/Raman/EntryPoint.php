@@ -9,15 +9,6 @@ class EntryPoint
     $this->route = $route;
     $this->method = $method;
     $this->routes = $routes;
-    $this->checkUrl();
-  }
-
-  private function checkUrl()
-  {
-    if ($this->route !== strtolower($this->route)) {
-      http_response_code(301);
-      header('location: /' . strtolower($this->route));
-    }
   }
 
   private function loadTemplate($template, $variables = [])
@@ -51,7 +42,7 @@ class EntryPoint
     $page = $controller->$action();
     $title = $page['title'] ?? 'Untitled';
 
-    if (isset($page['template'])) {
+    if (isset($page['template']) && !isset($page['html'])) {
       if (isset($page['variables'])) {
         $output = $this->loadTemplate($page['template'], $page['variables']);
       } else {
@@ -63,6 +54,7 @@ class EntryPoint
         'title' => $title,
         'loggedIn' => $this->routes->getAuthentication()->isLoggedIn()
       ]);
+
     } else if (isset($page['output'])) {
       $output = $page['output'];
 
@@ -71,8 +63,15 @@ class EntryPoint
         'title' => $title,
         'loggedIn' => $this->routes->getAuthentication()->isLoggedIn()
       ]);
+
     } else if (isset($page['file'])) {
       include __DIR__ . '/../../includes/' . $page['file'];
+
+    } else if (isset($page['json'])) {
+      echo $page['json'];
+
+    } else if (isset($page['html'])) {
+      echo $this->loadTemplate($page['template'], $page['variables']);
     }
   }
 }

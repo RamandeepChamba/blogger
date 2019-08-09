@@ -9,6 +9,7 @@
     "heroku/heroku-buildpack-php": "*"
   },
   "require": {
-    "ext-gettext": "*"
+    "ext-gettext": "*",
+    "components/jquery": "^3.3"
   }
 }

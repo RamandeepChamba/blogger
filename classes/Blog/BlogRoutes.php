@@ -4,6 +4,7 @@ use \Raman\DatabaseTable;
 use \Raman\Routes;
 use \Raman\Authentication;
 use \Blog\Controllers\Blog;
+use \Blog\Controllers\Comment;
 use \Blog\Controllers\Register;
 use \Blog\Controllers\Login;
 
@@ -12,6 +13,7 @@ class BlogRoutes implements Routes
 
   private $blogsTable;
   private $usersTable;
+  private $commentsTable;
   private $authentication;
 
   public function __construct()
@@ -20,12 +22,14 @@ class BlogRoutes implements Routes
 
     $this->blogsTable = new DatabaseTable($pdo, 'blogs', 'id');
     $this->usersTable = new DatabaseTable($pdo, 'users', 'id');
+    $this->commentsTable = new DatabaseTable($pdo, 'comments', 'id');
     $this->authentication = new Authentication($this->usersTable, 'name', 'password');
   }
 
   public function getRoutes(): array
   {
     $blogController = new Blog($this->blogsTable, $this->authentication);
+    $commentController = new Comment($this->commentsTable, $this->authentication);
     $registerController = new Register($this->usersTable, $this->authentication);
     $loginController = new Login($this->authentication);
 
@@ -91,6 +95,29 @@ class BlogRoutes implements Routes
           'action' => 'upload'
         ],
         'login' => true
+      ],
+      'blog/comment/add' => [
+        'POST' => [
+          'controller' => $commentController,
+          'action' => 'save'
+        ],
+        'login' => true
+      ],
+      'blog/comment/showReplies' => [
+        'GET' => [
+          'controller' => $commentController,
+          'action' => 'showReplies'
+        ]
+      ],
+      'blog/comment/reply' => [
+        'GET' => [
+          'controller' => $commentController,
+          'action' => 'replyForm'
+        ],
+        'POST' => [
+          'controller' => $commentController,
+          'action' => 'reply'
+        ]
       ],
       '' => [
         'GET' => [

@@ -16,7 +16,7 @@ class DatabaseTable
   }
 
   // Query
-  private function query($sql, $params = [])
+  public function query($sql, $params = [])
   {
     $query = $this->pdo->prepare($sql);
     $query->execute($params);
