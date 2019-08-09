@@ -54,7 +54,7 @@
         $.get('/blog/comment/showReplies',
           {parent_id},
           function (html) {
-            $(html).insertAfter(btn)
+            $(btn).parent().append(html)
           }
         )
       } else {
