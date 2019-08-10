@@ -17,6 +17,7 @@
   comments.click(function (e) {
     let btn = e.target
 
+    // Reply form
     if ($(btn).hasClass('btn-reply')
       && !$(btn).hasClass('clicked'))
     {
@@ -33,6 +34,7 @@
         }
       )
     }
+    // Remove reply form
     else if($(btn).hasClass('btn-cancel'))
     {
       // Remove clicked class from reply button
@@ -42,6 +44,7 @@
       // Remove reply form
       $(replyForm).remove()
     }
+    // Show / Hide replies
     else if ($(btn).hasClass('btn-show_replies'))
     {
       if (!$(btn).hasClass('hide'))
@@ -71,20 +74,7 @@
 
 <!-- TODO -->
 <!--
-
-  ==>
-  If comment has replies
-    - Show 'show replies' button
-      - On 'hide replies' click
-        - Hide replies
-
   ==>
   On username click
     - Show user's profile page
-
-  ==>
-  On reply button click
-    - render reply form
-      - On cancel click
-        - Delete reply form
 -->

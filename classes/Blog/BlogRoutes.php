@@ -103,6 +103,13 @@ class BlogRoutes implements Routes
         ],
         'login' => true
       ],
+      'blog/comment/delete' => [
+        'POST' => [
+          'controller' => $commentController,
+          'action' => 'delete'
+        ],
+        'login' => true
+      ],
       'blog/comment/showReplies' => [
         'GET' => [
           'controller' => $commentController,

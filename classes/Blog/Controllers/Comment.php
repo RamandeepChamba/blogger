@@ -65,12 +65,14 @@ class Comment
 
   public function showReplies()
   {
+    $userId = $this->authentication->getUser()['id'] ?? NULL;
     $parent_id = $this->helpers->sanitize($_GET['parent_id']);
     $replies = $this->commentsTable->fetchByCol('parent_id', $parent_id);
 
     $fields = implode(',',
       [
-        'blog_id', 'comment', 'comments.id as comment_id', 'name'
+        'comments.blog_id as blog_id', 'comment', 'comments.id as comment_id',
+        'name', 'comments.user_id as user_id'
       ]);
     $sql = "SELECT $fields FROM comments
       JOIN users ON users.id = comments.user_id
@@ -81,7 +83,8 @@ class Comment
       'html' => true,
       'template' => 'commentsList.html.php',
       'variables' => [
-        'blog' => $blog ?? null
+        'blog' => $blog ?? null,
+        'user_id' => $userId
       ]
     ];
   }
@@ -105,7 +108,33 @@ class Comment
 
   public function delete()
   {
+    $id = $this->helpers->sanitize($_POST['comment_id']);
+    $blogId = $this->helpers->sanitize($_POST['blog_id']);
+    $userId = $this->authentication->getUser()['id'] ?? NULL;
+
+    // Check if current user is the author of comment
+    $comment = $this->commentsTable->fetchByCol('id', $id);
+
+    if (!$comment) {
+      $errors[] = 'Comment not found';
+    }
+
+    if (!isset($errors) && $comment[0]['user_id'] != $userId) {
+      $errors[] = 'Permission denied';
+    }
+
     // Delete comment
-      // TODO
+    if (!$this->commentsTable->delete($id)) {
+      $errors[] = 'Unable to delete comment';
+    }
+
+    if (isset($errors)) {
+      // Display Error
+      $errors = serialize($errors);
+      header("location: /blog/view?id=$blogId&errors=$errors");
+    }
+    else {
+      header("location: /blog/view?id=$blogId");
+    }
   }
 }

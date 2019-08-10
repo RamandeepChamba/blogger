@@ -152,7 +152,8 @@ class Blog
       $fields = implode(',',
         [
           'blogs.id as blog_id', 'blog', 'title',
-          'description', 'comment', 'comments.id as comment_id', 'name'
+          'description', 'comment', 'comments.id as comment_id',
+          'name', 'comments.user_id as user_id'
         ]);
       $sql = "SELECT $fields FROM blogs LEFT JOIN comments
         ON blogs.id = comments.blog_id
