@@ -154,9 +154,9 @@ class Blog
           'blogs.id as blog_id', 'blog', 'title',
           'description', 'comment', 'comments.id as comment_id', 'name'
         ]);
-      $sql = "SELECT $fields FROM blogs JOIN comments
+      $sql = "SELECT $fields FROM blogs LEFT JOIN comments
         ON blogs.id = comments.blog_id
-        JOIN users ON users.id = comments.user_id
+        LEFT JOIN users ON users.id = comments.user_id
         WHERE blogs.id = :blog_id
         AND comments.parent_id IS NULL";
       $params = ['blog_id' => $id];
