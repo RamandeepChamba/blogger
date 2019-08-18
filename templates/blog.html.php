@@ -1,8 +1,16 @@
 <?php include __DIR__ . '/errors.html.php'; ?>
 
-<?php if (isset($blog[0]['blog'])) { ?>
+<?php if (isset($blog['blog'])) { ?>
   <div id ="blog-container">
-    <?=$blog[0]['blog']?>
+    <?=$blog['blog']?>
+    <em>By: </em>
+    <a href="/user/<?=$blog['user_id']?>">
+      <?php if ($blog['user_id'] == $user_id) { ?>
+        you
+      <?php } else { ?>
+        <?=$blog['author']?>
+      <?php }; ?>
+    </a>
   </div>
   <hr>
   <?php include __DIR__ . '/comments.html.php'; ?>

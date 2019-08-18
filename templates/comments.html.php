@@ -4,7 +4,7 @@
   <?php include __DIR__ . '/commentForm.html.php'; ?>
   <br>
   <br>
-  <?php if (!$blog[0]['comment']) { ?>
+  <?php if (isset($comments) && !count($comments)) { ?>
     <p>Be the first to comment</p>
   <?php } else {
     include __DIR__ . '/commentsList.html.php';

@@ -28,7 +28,8 @@ class BlogRoutes implements Routes
 
   public function getRoutes(): array
   {
-    $blogController = new Blog($this->blogsTable, $this->authentication);
+    $blogController = new Blog($this->blogsTable, $this->commentsTable, 
+      $this->authentication);
     $commentController = new Comment($this->commentsTable, $this->authentication);
     $registerController = new Register($this->usersTable, $this->authentication);
     $loginController = new Login($this->authentication);

@@ -7,13 +7,15 @@ use \Raman\Helpers;
 class Blog
 {
   private $blogsTable;
+  private $commentsTable;
   private $authentication;
   private $helpers;
 
   public function __construct(DatabaseTable $blogsTable,
-    Authentication $authentication)
+    DatabaseTable $commentsTable, Authentication $authentication)
   {
     $this->blogsTable = $blogsTable;
+    $this->commentsTable = $commentsTable;
     $this->authentication = $authentication;
     $this->helpers = new Helpers();
   }
@@ -147,21 +149,31 @@ class Blog
     if (isset($id)) {
       // Fetch current user Id
       $userId = $this->authentication->getUser()['id'] ?? NULL;
-      // Fetch blog (blog, user info, comments)
-      // $blog = $this->blogsTable->fetch($id);
+
+      // Fetch blog and user info
       $fields = implode(',',
         [
-          'blogs.id as blog_id', 'blog', 'title',
-          'description', 'comment', 'comments.id as comment_id',
-          'name', 'comments.user_id as user_id'
+          'blogs.id as blog_id', 'blog', 'title', 'description',
+          'users.name as author', 'user_id'
         ]);
-      $sql = "SELECT $fields FROM blogs LEFT JOIN comments
-        ON blogs.id = comments.blog_id
-        LEFT JOIN users ON users.id = comments.user_id
-        WHERE blogs.id = :blog_id
+      $sql = "SELECT $fields FROM blogs JOIN users
+        ON blogs.user_id = users.id
+        WHERE blogs.id = :blog_id";
+      $params = ['blog_id' => $id];
+      $blog = $this->blogsTable->query($sql, $params)->fetch();
+
+      // Fetch comments
+      $fields = implode(',',
+        [
+          'comment', 'comments.id as comment_id', 'blog_id',
+          'users.name as author', 'users.id as user_id'
+        ]);
+      $sql = "SELECT $fields FROM comments JOIN users
+        ON comments.user_id = users.id
+        WHERE comments.blog_id = :blog_id
         AND comments.parent_id IS NULL";
       $params = ['blog_id' => $id];
-      $blog = $this->blogsTable->query($sql, $params)->fetchAll();
+      $comments = $this->commentsTable->query($sql, $params)->fetchAll();
 
       if (!$blog) {
         $errors[] = 'Blog not found';
@@ -175,10 +187,11 @@ class Blog
     }
 
     return [
-      'title' => $blog[0]['title'] ?? null,
+      'title' => $blog['title'] ?? null,
       'template' => 'blog.html.php',
       'variables' => [
         'blog' => $blog ?? null,
+        'comments' => $comments ?? null,
         'errors' => $errors ?? null,
         'user_id' => $userId
       ]

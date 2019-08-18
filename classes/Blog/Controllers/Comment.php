@@ -71,19 +71,19 @@ class Comment
 
     $fields = implode(',',
       [
-        'comments.blog_id as blog_id', 'comment', 'comments.id as comment_id',
-        'name', 'comments.user_id as user_id'
+        'blog_id', 'comment', 'comments.id as comment_id',
+        'users.name as author', 'users.id as user_id'
       ]);
     $sql = "SELECT $fields FROM comments
       JOIN users ON users.id = comments.user_id
       WHERE comments.parent_id = :parent_id";
     $params = ['parent_id' => $parent_id];
-    $blog = $this->commentsTable->query($sql, $params)->fetchAll();
+    $comments = $this->commentsTable->query($sql, $params)->fetchAll();
     return [
       'html' => true,
       'template' => 'commentsList.html.php',
       'variables' => [
-        'blog' => $blog ?? null,
+        'comments' => $comments ?? null,
         'user_id' => $userId
       ]
     ];
