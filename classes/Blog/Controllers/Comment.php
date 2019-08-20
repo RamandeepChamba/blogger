@@ -93,7 +93,8 @@ class Comment
       'template' => 'commentsList.html.php',
       'variables' => [
         'comments' => $comments ?? null,
-        'user_id' => $userId
+        'user_id' => $userId,
+        'replies' => true 
       ]
     ];
   }

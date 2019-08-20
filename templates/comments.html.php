@@ -64,7 +64,7 @@
         // Hide replies
         $(btn).html('Show replies')
 
-        $(btn).parent().children('.comments').remove()
+        $(btn).parent().children('.replies').remove()
       }
       // Toggle show class
       $(btn).toggleClass('hide')
@@ -79,7 +79,29 @@
           $(btn).parent().html(edit_form)
         }
       )
-      // Re-render parent replies
+    }
+    // Remove edit form and render comment
+    else if($(btn).hasClass('btn-cancel_edit'))
+    {
+      // Grab parent comment id
+      let parent_id = btn.dataset.parent_id
+      let blog_id = btn.dataset.blog_id
+
+      if (!parent_id) {
+        location.href='/blog/view?id=' + blog_id;
+      }
+      else {
+        // Grab parent comment
+        let parent_comment = $(btn).parent().parent().parent().parent()
+        // Re-render replies
+        $(parent_comment).children('.replies').remove()
+        $.get('/blog/comment/showReplies',
+          {parent_id},
+          function (html) {
+            $(parent_comment).append(html)
+          }
+        )
+      }
     }
   })
 </script>

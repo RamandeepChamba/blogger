@@ -1,4 +1,4 @@
-<ul class="comments">
+<ul class="<?=isset($replies) ? 'replies' : 'comments' ?>">
 <?php foreach ($comments as $c) { ?>
   <br>
   <li>

@@ -25,6 +25,11 @@
   <?php }; ?>
 
   <?php if (isset($type) && $type == 'edit_comment') { ?>
-    <button type="button" name="cancel_edit" class="btn-cancel_edit">Cancel</button>
+    <button type="button" name="cancel_edit" class="btn-cancel_edit"
+      data-parent_id="<?=$comment['parent_id']?>"
+      data-blog_id="<?=$comment['blog_id']?>"
+    >
+      Cancel
+    </button>
   <?php }; ?>
 </form>
