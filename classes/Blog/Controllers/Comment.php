@@ -40,6 +40,15 @@ class Comment
         $errors[] = 'Blog not found';
       }
 
+      if (empty($data['parent_id'])) {
+        $data['parent_id'] = NULL;
+      }
+
+      if (isset($data['comment_id'])) {
+        $data['id'] = $data['comment_id'];
+        unset($data['comment_id']);
+      }
+
     if (!isset($errors)) {
       // Add / Edit comment
       /*
@@ -136,5 +145,23 @@ class Comment
     else {
       header("location: /blog/view?id=$blogId");
     }
+  }
+
+  public function edit()
+  {
+    $user_id = $this->authentication->getUser()['id'] ?? NULL;
+    $comment_id = $this->helpers->sanitize($_GET['comment_id']);
+    // Fetch comment
+    $comment = $this->commentsTable->fetch($comment_id);
+
+    return [
+      'html' => true,
+      'template' => 'commentForm.html.php',
+      'variables' => [
+        'comment' => $comment,
+        'user_id' => $user_id,
+        'type' => 'edit_comment'
+      ]
+    ];
   }
 }

@@ -35,7 +35,7 @@
       )
     }
     // Remove reply form
-    else if($(btn).hasClass('btn-cancel'))
+    else if($(btn).hasClass('btn-cancel_reply'))
     {
       // Remove clicked class from reply button
       let replyForm = $(btn).parent()
@@ -68,6 +68,18 @@
       }
       // Toggle show class
       $(btn).toggleClass('hide')
+    }
+    // Edit comment
+    else if ($(btn).attr('name') == 'btn-edit_comment') {
+      let comment_id = btn.dataset.comment_id
+      // Replace comment with edit form
+      $.get('/blog/comment/edit',
+        {comment_id},
+        function (edit_form) {
+          $(btn).parent().html(edit_form)
+        }
+      )
+      // Re-render parent replies
     }
   })
 </script>

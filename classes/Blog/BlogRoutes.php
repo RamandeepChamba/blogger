@@ -28,7 +28,7 @@ class BlogRoutes implements Routes
 
   public function getRoutes(): array
   {
-    $blogController = new Blog($this->blogsTable, $this->commentsTable, 
+    $blogController = new Blog($this->blogsTable, $this->commentsTable,
       $this->authentication);
     $commentController = new Comment($this->commentsTable, $this->authentication);
     $registerController = new Register($this->usersTable, $this->authentication);
@@ -108,6 +108,13 @@ class BlogRoutes implements Routes
         'POST' => [
           'controller' => $commentController,
           'action' => 'delete'
+        ],
+        'login' => true
+      ],
+      'blog/comment/edit' => [
+        'GET' => [
+          'controller' => $commentController,
+          'action' => 'edit'
         ],
         'login' => true
       ],
