@@ -80,12 +80,15 @@ class Comment
 
     $fields = implode(',',
       [
-        'blog_id', 'comment', 'comments.id as comment_id',
-        'users.name as author', 'users.id as user_id'
+        'A.blog_id', 'A.comment', 'A.id as comment_id',
+        'COUNT(B.id) as replies',
+        'U.name as author', 'U.id as user_id'
       ]);
-    $sql = "SELECT $fields FROM comments
-      JOIN users ON users.id = comments.user_id
-      WHERE comments.parent_id = :parent_id";
+    $sql = "SELECT $fields FROM comments AS A
+      LEFT JOIN comments AS B ON A.id = B.parent_id
+      JOIN users as U ON U.id = A.user_id
+    	WHERE A.parent_id = :parent_id
+      GROUP BY(A.id)";
     $params = ['parent_id' => $parent_id];
     $comments = $this->commentsTable->query($sql, $params)->fetchAll();
     return [
@@ -94,7 +97,7 @@ class Comment
       'variables' => [
         'comments' => $comments ?? null,
         'user_id' => $userId,
-        'replies' => true 
+        'replies' => true
       ]
     ];
   }

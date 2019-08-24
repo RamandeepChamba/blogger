@@ -6,7 +6,7 @@
       <?=$c['comment']?>
       <br>
       <em>By: </em>
-      <a href="/user/<?=$c['user_id']?>">
+      <a href="/user?id=<?=$c['user_id']?>">
         <?php if ($c['user_id'] == $user_id) { ?>
           you
         <?php } else { ?>
@@ -33,9 +33,9 @@
     <button type="button" name="showReplies"
       class="btn-show_replies"
       data-comment_id=<?=$c['comment_id']?>
+      data-replies=<?=$c['replies']?>
     >
-      <!-- [Show no. of replies] -->
-      Show replies
+      Show <strong><?=$c['replies']?></strong> replies
     </button>
     <button type="button" name="reply" class="btn-reply"
       data-comment_id=<?=$c['comment_id']?>

@@ -1,5 +1,10 @@
 <div id="comments-container">
-  <h2>Comments</h2>
+  <h2>
+    Comments
+    <strong style="color: #777; font-size: 80%">
+      <?=count($comments)?>
+    </strong>
+  </h2>
   <hr>
   <?php include __DIR__ . '/commentForm.html.php'; ?>
   <br>
@@ -62,7 +67,8 @@
         )
       } else {
         // Hide replies
-        $(btn).html('Show replies')
+        let replies = btn.dataset.replies
+        $(btn).html(`Show <strong>${replies}</strong> replies`)
 
         $(btn).parent().children('.replies').remove()
       }

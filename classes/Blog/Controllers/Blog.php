@@ -165,15 +165,21 @@ class Blog
       // Fetch comments
       $fields = implode(',',
         [
-          'comment', 'comments.id as comment_id', 'blog_id',
-          'users.name as author', 'users.id as user_id'
+          'A.comment', 'A.id as comment_id', 'A.blog_id',
+          'COUNT(B.id) as replies',
+          'U.name as author', 'U.id as user_id'
         ]);
-      $sql = "SELECT $fields FROM comments JOIN users
-        ON comments.user_id = users.id
-        WHERE comments.blog_id = :blog_id
-        AND comments.parent_id IS NULL";
+      $sql = "SELECT $fields FROM comments as A JOIN comments as B
+        ON A.id = B.parent_id
+          JOIN users as U
+            ON A.user_id = U.id
+            WHERE A.blog_id = :blog_id
+            AND A.parent_id IS NULL
+            GROUP BY(A.id)";
       $params = ['blog_id' => $id];
       $comments = $this->commentsTable->query($sql, $params)->fetchAll();
+
+      // Fetch replies
 
       if (!$blog) {
         $errors[] = 'Blog not found';

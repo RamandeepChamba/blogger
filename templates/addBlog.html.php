@@ -2,9 +2,12 @@
 
 <form action="/blog/add" method="post">
   <input type="text" name="blog[id]" value="<?=$blog['id']?>" hidden>
-  <input type="text" name="blog[title]" value="<?=$blog['title']?>"
-    placeholder="Title" required autofocus>
-  <input type="text" name="blog[description]" value="<?=$blog['description']?>" 
+  <label for="blog-title">Title</label>
+  <input type="text" name="blog[title]" id="blog-title"
+    value="<?=$blog['title']?>" placeholder="Title" required autofocus>
+  <label for="blog-description">Description</label>
+  <input type="text" name="blog[description]" id="blog-description"
+    value="<?=$blog['description']?>"
     placeholder="Description" required>
   <textarea id="blog" name="blog[blog]" rows="20"
     placeholder="Start writing blog"

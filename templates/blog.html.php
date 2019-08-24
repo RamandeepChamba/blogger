@@ -4,7 +4,7 @@
   <div id ="blog-container">
     <?=$blog['blog']?>
     <em>By: </em>
-    <a href="/user/<?=$blog['user_id']?>">
+    <a href="/user?id=<?=$blog['user_id']?>">
       <?php if ($blog['user_id'] == $user_id) { ?>
         you
       <?php } else { ?>

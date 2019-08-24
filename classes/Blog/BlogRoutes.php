@@ -5,6 +5,7 @@ use \Raman\Routes;
 use \Raman\Authentication;
 use \Blog\Controllers\Blog;
 use \Blog\Controllers\Comment;
+use \Blog\Controllers\User;
 use \Blog\Controllers\Register;
 use \Blog\Controllers\Login;
 
@@ -30,12 +31,20 @@ class BlogRoutes implements Routes
   {
     $blogController = new Blog($this->blogsTable, $this->commentsTable,
       $this->authentication);
+    $userController = new User($this->usersTable, $this->blogsTable, $this->authentication);
     $commentController = new Comment($this->commentsTable, $this->authentication);
     $registerController = new Register($this->usersTable, $this->authentication);
     $loginController = new Login($this->authentication);
 
     // Routing
     $routes = [
+      // Profile
+      'user' => [
+        'GET' => [
+          'controller' => $userController,
+          'action' => 'profile'
+        ]
+      ],
       // Register
       'user/register' => [
         'GET' => [
