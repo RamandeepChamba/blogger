@@ -111,10 +111,3 @@
     }
   })
 </script>
-
-<!-- TODO -->
-<!--
-  ==>
-  On username click
-    - Show user's profile page
--->

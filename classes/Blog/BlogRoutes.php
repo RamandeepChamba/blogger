@@ -15,6 +15,7 @@ class BlogRoutes implements Routes
   private $blogsTable;
   private $usersTable;
   private $commentsTable;
+  private $followersTable;
   private $authentication;
 
   public function __construct()
@@ -24,6 +25,7 @@ class BlogRoutes implements Routes
     $this->blogsTable = new DatabaseTable($pdo, 'blogs', 'id');
     $this->usersTable = new DatabaseTable($pdo, 'users', 'id');
     $this->commentsTable = new DatabaseTable($pdo, 'comments', 'id');
+    $this->followersTable = new DatabaseTable($pdo, 'followers', 'user_id');
     $this->authentication = new Authentication($this->usersTable, 'name', 'password');
   }
 
@@ -31,7 +33,8 @@ class BlogRoutes implements Routes
   {
     $blogController = new Blog($this->blogsTable, $this->commentsTable,
       $this->authentication);
-    $userController = new User($this->usersTable, $this->blogsTable, $this->authentication);
+    $userController = new User($this->usersTable, $this->blogsTable,
+    $this->followersTable, $this->authentication);
     $commentController = new Comment($this->commentsTable, $this->authentication);
     $registerController = new Register($this->usersTable, $this->authentication);
     $loginController = new Login($this->authentication);
@@ -67,6 +70,29 @@ class BlogRoutes implements Routes
           'action' => 'login'
         ]
       ],
+      // Follow
+      'user/follow' => [
+        'GET' => [
+          'controller' => $userController,
+          'action' => 'follow'
+        ],
+        'login' => true
+      ],
+      // Followers
+      'user/followers' => [
+        'GET' => [
+          'controller' => $userController,
+          'action' => 'fetchFollowers'
+        ]
+      ],
+      // Following
+      'user/following' => [
+        'GET' => [
+          'controller' => $userController,
+          'action' => 'fetchFollowing'
+        ]
+      ],
+      // Logout
       'user/logout' => [
         'GET' => [
           'controller' => $loginController,
