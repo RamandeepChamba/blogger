@@ -8,14 +8,17 @@ class Blog
 {
   private $blogsTable;
   private $commentsTable;
+  private $blogsLikesTable;
   private $authentication;
   private $helpers;
 
   public function __construct(DatabaseTable $blogsTable,
-    DatabaseTable $commentsTable, Authentication $authentication)
+    DatabaseTable $commentsTable, DatabaseTable $blogsLikesTable,
+    Authentication $authentication)
   {
     $this->blogsTable = $blogsTable;
     $this->commentsTable = $commentsTable;
+    $this->blogsLikesTable = $blogsLikesTable;
     $this->authentication = $authentication;
     $this->helpers = new Helpers();
   }
@@ -142,6 +145,16 @@ class Blog
     ];
   }
 
+  private function fetchLikes($blog_id) {
+    // Fetch Number of likes
+    $sql = 'SELECT COUNT(user_id) as likes FROM blogs_likes
+      WHERE blog_id = :blog_id';
+    $params = [
+      'blog_id' => $blog_id
+    ];
+    return $this->blogsLikesTable->query($sql, $params)->fetch()['likes'];
+  }
+
   public function view()
   {
     $id = isset($_GET['id']) ? htmlspecialchars($_GET['id']) : NULL;
@@ -162,27 +175,43 @@ class Blog
       $params = ['blog_id' => $id];
       $blog = $this->blogsTable->query($sql, $params)->fetch();
 
-      // Fetch comments
-      $fields = implode(',',
-        [
-          'A.comment', 'A.id as comment_id', 'A.blog_id',
-          'COUNT(B.id) as replies',
-          'U.name as author', 'U.id as user_id'
-        ]);
-      $sql = "SELECT $fields FROM comments as A JOIN comments as B
-        ON A.id = B.parent_id
-          JOIN users as U
-            ON A.user_id = U.id
-            WHERE A.blog_id = :blog_id
-            AND A.parent_id IS NULL
-            GROUP BY(A.id)";
-      $params = ['blog_id' => $id];
-      $comments = $this->commentsTable->query($sql, $params)->fetchAll();
-
-      // Fetch replies
-
       if (!$blog) {
         $errors[] = 'Blog not found';
+      }
+      else {
+        // Fetch comments
+        $fields = implode(',',
+          [
+            'A.comment', 'A.id as comment_id', 'A.blog_id',
+            'COUNT(B.id) as replies',
+            'U.name as author', 'U.id as user_id'
+          ]);
+        $sql = "SELECT $fields FROM comments as A JOIN comments as B
+          ON A.id = B.parent_id
+            JOIN users as U
+              ON A.user_id = U.id
+              WHERE A.blog_id = :blog_id
+              AND A.parent_id IS NULL
+              GROUP BY(A.id)";
+        $params = ['blog_id' => $id];
+        $comments = $this->commentsTable->query($sql, $params)->fetchAll();
+
+        // Check if current user has liked this blog
+        $sql = "SELECT * FROM blogs_likes
+          WHERE user_id = :user_id
+          AND blog_id = :blog_id";
+        $params = [
+          'user_id' => $userId,
+          'blog_id' => $id
+        ];
+        $liked =
+          isset($this->blogsLikesTable->
+            query($sql, $params)->
+              fetch()['user_id'])
+          ? true : false;
+
+        // Fetch Number of likes
+        $likes = $this->fetchLikes($id);
       }
     } else {
       $errors[] = 'Invalid request';
@@ -199,7 +228,71 @@ class Blog
         'blog' => $blog ?? null,
         'comments' => $comments ?? null,
         'errors' => $errors ?? null,
-        'user_id' => $userId
+        'user_id' => $userId,
+        'liked' => $liked ?? false,
+        'likes' => $likes
+      ]
+    ];
+  }
+
+  public function like()
+  {
+    // Fetch blog id
+    $blog_id = $_POST['blog_id'];
+    // Check if liking or unliking
+    $unlike = $_POST['unlike'] == 'true' ? true : false;
+    // Check if blog present
+    $blog = $this->blogsTable->fetch($blog_id);
+    if ($blog) {
+      // Fetch current user
+      $user_id = $this->authentication->getUser()['id'];
+      // User can't like his own blog
+      if ($user_id == $blog['user_id']) {
+        $error = [
+          'msg' => 'Cannot ' . ($unlike ? 'unlike' : 'like') . ' your own blog',
+          'code' => 403
+        ];
+      }
+      // Like / Unlike blog
+      else {
+        $fields = [
+          'user_id' => $user_id,
+          'blog_id' => $blog_id
+        ];
+
+        $action = $unlike ? 'deleteByCols' : 'save';
+        if ($this->blogsLikesTable->$action($fields)) {
+          // Fetch number of likes
+          $likes = $this->fetchLikes($blog_id);
+          
+          return [
+            'json' => [
+              'user_id' => $user_id,
+              'blog_id' => $blog_id,
+              'likes' => $likes
+            ]
+          ];
+        }
+        else {
+          $error = [
+            'msg' => 'Unable to ' . ($unlike ? 'unlike' : 'like') . ' blog',
+            'code' => 403
+          ];
+        }
+      }
+    }
+
+    // Errors
+    if (!isset($error)) {
+      $error = [
+        'msg' => 'Blog not found / Invalid request',
+        'code' => '404'
+      ];
+    }
+
+    return [
+      'json' => [
+        'error' => $error
       ]
     ];
   }

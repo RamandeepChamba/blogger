@@ -68,7 +68,7 @@ class EntryPoint
       include __DIR__ . '/../../includes/' . $page['file'];
 
     } else if (isset($page['json'])) {
-      echo $page['json'];
+      echo json_encode($page['json']);
 
     } else if (isset($page['html'])) {
       echo $this->loadTemplate($page['template'], $page['variables']);

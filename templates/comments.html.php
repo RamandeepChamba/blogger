@@ -109,5 +109,8 @@
         )
       }
     }
+    else if ($(btn).attr('name') == 'like_comment') {
+      console.log('like comment')
+    }
   })
 </script>

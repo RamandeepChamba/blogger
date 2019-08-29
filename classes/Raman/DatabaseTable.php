@@ -107,9 +107,27 @@ class DatabaseTable
   // Delete
   public function delete($id)
   {
-    $sql = "DELETE from $this->table WHERE $this->primaryKey = :primaryKey";
+    $sql = "DELETE FROM $this->table WHERE $this->primaryKey = :primaryKey";
     $params = ['primaryKey' => $id];
     $query = $this->query($sql, $params);
+    // Check if query succeeded
+    return $query->rowCount();
+  }
+
+  // Delete by columns
+  public function deleteByCols($fields)
+  {
+    // Prepare SQL query
+    $sql = "DELETE FROM $this->table WHERE";
+
+    foreach ($fields as $key => $value) {
+      $sql .= " $key = :$key AND";
+    }
+
+    $sql = rtrim($sql, 'AND');
+
+    // Execute query
+    $query = $this->query($sql, $fields);
     // Check if query succeeded
     return $query->rowCount();
   }

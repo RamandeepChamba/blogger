@@ -13,11 +13,12 @@
           <?=$c['author']?>
         <?php }; ?>
       </a>
+      <br>
+      <button type="button" name="like_comment">Like</button>
     </p>
     <!-- If current user is the author of comment -->
     <?php if ($c['user_id'] == $user_id) { ?>
       <!-- Edit comment -->
-      <!-- TODO -->
       <button type="button" name="btn-edit_comment"
         data-comment_id="<?=$c['comment_id']?>"
       >

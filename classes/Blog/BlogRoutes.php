@@ -12,12 +12,6 @@ use \Blog\Controllers\Login;
 class BlogRoutes implements Routes
 {
 
-  private $blogsTable;
-  private $usersTable;
-  private $commentsTable;
-  private $followersTable;
-  private $authentication;
-
   public function __construct()
   {
     include __DIR__ . '/../../includes/connection.php';
@@ -26,12 +20,15 @@ class BlogRoutes implements Routes
     $this->usersTable = new DatabaseTable($pdo, 'users', 'id');
     $this->commentsTable = new DatabaseTable($pdo, 'comments', 'id');
     $this->followersTable = new DatabaseTable($pdo, 'followers', 'user_id');
+    $this->blogsLikesTable = new DatabaseTable($pdo, 'blogs_likes', 'blog_id');
+    $this->commentsLikesTable = new DatabaseTable($pdo, 'comments_likes', 'comment_id');
     $this->authentication = new Authentication($this->usersTable, 'name', 'password');
   }
 
   public function getRoutes(): array
   {
     $blogController = new Blog($this->blogsTable, $this->commentsTable,
+      $this->blogsLikesTable,
       $this->authentication);
     $userController = new User($this->usersTable, $this->blogsTable,
     $this->followersTable, $this->authentication);
@@ -125,6 +122,13 @@ class BlogRoutes implements Routes
         ],
         'login' => true
       ],
+      'blog/like' => [
+        'POST' => [
+          'controller' => $blogController,
+          'action' => 'like'
+        ],
+        'login' => true
+      ],
       'blog/upload' => [
         'POST' => [
           'controller' => $blogController,
@@ -150,6 +154,13 @@ class BlogRoutes implements Routes
         'GET' => [
           'controller' => $commentController,
           'action' => 'edit'
+        ],
+        'login' => true
+      ],
+      'blog/comment/like' => [
+        'POST' => [
+          'controller' => $commentController,
+          'action' => 'like'
         ],
         'login' => true
       ],
