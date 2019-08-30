@@ -9,16 +9,19 @@ class Blog
   private $blogsTable;
   private $commentsTable;
   private $blogsLikesTable;
+  private $commentsLikesTable;
   private $authentication;
   private $helpers;
 
   public function __construct(DatabaseTable $blogsTable,
     DatabaseTable $commentsTable, DatabaseTable $blogsLikesTable,
+    DatabaseTable $commentsLikesTable,
     Authentication $authentication)
   {
     $this->blogsTable = $blogsTable;
     $this->commentsTable = $commentsTable;
     $this->blogsLikesTable = $blogsLikesTable;
+    $this->commentsLikesTable = $commentsLikesTable;
     $this->authentication = $authentication;
     $this->helpers = new Helpers();
   }
@@ -180,19 +183,31 @@ class Blog
       }
       else {
         // Fetch comments
-        $fields = implode(',',
+        $subfields = implode(',',
           [
             'A.comment', 'A.id as comment_id', 'A.blog_id',
             'COUNT(B.id) as replies',
             'U.name as author', 'U.id as user_id'
           ]);
-        $sql = "SELECT $fields FROM comments as A JOIN comments as B
-          ON A.id = B.parent_id
-            JOIN users as U
-              ON A.user_id = U.id
-              WHERE A.blog_id = :blog_id
-              AND A.parent_id IS NULL
-              GROUP BY(A.id)";
+        $fields = implode(',',
+          [
+            'comment', 'T.comment_id', 'blog_id',
+            'replies', 'COUNT(C.user_id) as likes',
+            'author', 'T.user_id'
+          ]);
+        $sql = "SELECT $fields FROM comments_likes as C
+          RIGHT JOIN (
+            SELECT $subfields FROM comments as A
+              LEFT JOIN comments as B
+              ON A.id = B.parent_id
+              JOIN users as U ON A.user_id = U.id
+                WHERE A.blog_id = :blog_id
+                AND A.parent_id IS NULL
+                GROUP BY(A.id)
+          ) as T
+          ON C.comment_id = T.comment_id
+          GROUP BY (T.comment_id)";
+
         $params = ['blog_id' => $id];
         $comments = $this->commentsTable->query($sql, $params)->fetchAll();
 
@@ -212,6 +227,22 @@ class Blog
 
         // Fetch Number of likes
         $likes = $this->fetchLikes($id);
+
+        // Fetch all comments that current user has liked
+        $sql = "SELECT comment_id FROM comments_likes
+          WHERE user_id = :user_id";
+
+        $params = [
+          'user_id' => $userId
+        ];
+        $user_liked_comments = $this->commentsLikesTable->
+          query($sql, $params)->
+          fetchAll();
+
+        $liked_comments = array_map(function ($record)
+        {
+          return $record['comment_id'];
+        }, $user_liked_comments);
       }
     } else {
       $errors[] = 'Invalid request';
@@ -230,7 +261,8 @@ class Blog
         'errors' => $errors ?? null,
         'user_id' => $userId,
         'liked' => $liked ?? false,
-        'likes' => $likes
+        'liked_comments' => $liked_comments,
+        'blog_likes' => $likes
       ]
     ];
   }
@@ -264,12 +296,12 @@ class Blog
         if ($this->blogsLikesTable->$action($fields)) {
           // Fetch number of likes
           $likes = $this->fetchLikes($blog_id);
-          
+
           return [
             'json' => [
               'user_id' => $user_id,
               'blog_id' => $blog_id,
-              'likes' => $likes
+              'blog_likes' => $likes
             ]
           ];
         }

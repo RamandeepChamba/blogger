@@ -109,8 +109,56 @@
         )
       }
     }
-    else if ($(btn).attr('name') == 'like_comment') {
-      console.log('like comment')
+    else if ($(btn).attr('name')
+      && (
+        $(btn).attr('name').startsWith('like_comment')
+        || $(btn).attr('name').startsWith('unlike_comment')
+      )
+    )
+    {
+      let name = $(e.target).attr('name')
+      let action = name.split('_')[0]
+      // Fetch comment id
+      let comment_id = $(e.target).data('comment_id')
+      let url = '/blog/comment/like'
+      let request =
+        {
+          comment_id,
+          unlike: action == 'unlike'
+        }
+
+      // Post like / Unlike to comment
+      $.post(url, request,
+        function(data)
+        {
+          let json = JSON.parse(data)
+          // On success
+          if (!json.error) {
+            alert('success')
+            // Toggle button
+            let newName = request.unlike ? 'like_comment' : 'unlike_comment'
+            let html = request.unlike ? 'Like' : 'Unlike'
+            $(`#comment_${comment_id}`).html(html)
+            $(`#comment_${comment_id}`).attr('name', newName)
+            // Update likes
+            $(`#comment_${comment_id}_likes`).html(json.comment_likes)
+          }
+          // Errors
+          else {
+            let e = json.error
+            alert(e.code + ': ' + e.msg)
+          }
+        })
+
+          // Failure
+          .fail(function(e) {
+            if (e.status == 403) {
+              alert('login to ' + action)
+            }
+            else {
+              alert('unable to ' + action + ' comment')
+            }
+          })
     }
   })
 </script>

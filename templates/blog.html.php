@@ -17,7 +17,7 @@
   <?php }; ?>
     <strong id="blog_likes"
       style="color: #777; font-size: 90%">
-      <?=$likes?>
+      <?=$blog_likes?>
     </strong>
     <br>
     <em>By: </em>
@@ -72,7 +72,7 @@
               $(`[name=${name}]`).html(html)
               $(`[name=${name}]`).attr('name', newName)
               // Update likes
-              $('#blog_likes').html(json.likes)
+              $('#blog_likes').html(json.blog_likes)
             }
             // Errors
             else {

@@ -14,7 +14,24 @@
         <?php }; ?>
       </a>
       <br>
-      <button type="button" name="like_comment">Like</button>
+      <?php if ($c['user_id'] == $user_id) { ?>
+        <strong>Likes</strong>
+      <?php } else { ?>
+        <button type="button"
+          name="<?=in_array($c['comment_id'], $liked_comments)
+            ? 'unlike_comment'
+            : 'like_comment'?>"
+          id="comment_<?=$c['comment_id']?>"
+          data-comment_id="<?=$c['comment_id']?>"
+        >
+          <?=in_array($c['comment_id'], $liked_comments)
+            ? 'Unlike' : 'Like'?>
+        </button>
+      <?php }; ?>
+      <strong id="comment_<?=$c['comment_id']?>_likes"
+        style="color: #777; font-size: 90%">
+        <?=$c['likes']?>
+      </strong>
     </p>
     <!-- If current user is the author of comment -->
     <?php if ($c['user_id'] == $user_id) { ?>

@@ -7,13 +7,16 @@ use \Raman\Helpers;
 class Comment
 {
   private $commentsTable;
+  private $commentsLikesTable;
   private $authentication;
   private $helpers;
 
   public function __construct(DatabaseTable $commentsTable,
+    DatabaseTable $commentsLikesTable,
     Authentication $authentication)
   {
     $this->commentsTable = $commentsTable;
+    $this->commentsLikesTable = $commentsLikesTable;
     $this->authentication = $authentication;
     $this->helpers = new Helpers();
   }
@@ -78,25 +81,55 @@ class Comment
     $parent_id = $this->helpers->sanitize($_GET['parent_id']);
     $replies = $this->commentsTable->fetchByCol('parent_id', $parent_id);
 
-    $fields = implode(',',
+    $subfields = implode(',',
       [
         'A.blog_id', 'A.comment', 'A.id as comment_id',
         'COUNT(B.id) as replies',
         'U.name as author', 'U.id as user_id'
       ]);
-    $sql = "SELECT $fields FROM comments AS A
-      LEFT JOIN comments AS B ON A.id = B.parent_id
-      JOIN users as U ON U.id = A.user_id
-    	WHERE A.parent_id = :parent_id
-      GROUP BY(A.id)";
+    $fields = implode(',',
+      [
+        'comment', 'T.comment_id', 'blog_id',
+        'replies', 'COUNT(C.user_id) as likes',
+        'author', 'T.user_id'
+      ]);
+    $sql = "SELECT $fields FROM comments_likes as C
+      RIGHT JOIN (
+        SELECT $subfields FROM comments AS A
+          LEFT JOIN comments AS B ON A.id = B.parent_id
+          JOIN users as U ON U.id = A.user_id
+        	WHERE A.parent_id = :parent_id
+          GROUP BY(A.id)
+      ) as T
+      ON C.comment_id = T.comment_id
+      GROUP BY (T.comment_id)";
+
     $params = ['parent_id' => $parent_id];
     $comments = $this->commentsTable->query($sql, $params)->fetchAll();
+
+    // Fetch all comments that current user has liked
+    $sql = "SELECT comment_id FROM comments_likes
+      WHERE user_id = :user_id";
+
+    $params = [
+      'user_id' => $userId
+    ];
+    $user_liked_comments = $this->commentsLikesTable->
+      query($sql, $params)->
+      fetchAll();
+
+    $liked_comments = array_map(function ($record)
+    {
+      return $record['comment_id'];
+    }, $user_liked_comments);
+
     return [
       'html' => true,
       'template' => 'commentsList.html.php',
       'variables' => [
         'comments' => $comments ?? null,
         'user_id' => $userId,
+        'liked_comments' => $liked_comments,
         'replies' => true
       ]
     ];
@@ -165,6 +198,77 @@ class Comment
         'comment' => $comment,
         'user_id' => $user_id,
         'type' => 'edit_comment'
+      ]
+    ];
+  }
+
+  private function fetchLikes($comment_id) {
+    // Fetch Number of likes
+    $sql = 'SELECT COUNT(user_id) as likes FROM comments_likes
+      WHERE comment_id = :comment_id';
+    $params = [
+      'comment_id' => $comment_id
+    ];
+    return $this->commentsLikesTable->query($sql, $params)->fetch()['likes'];
+  }
+
+  public function like()
+  {
+    // Fetch comment id
+    $comment_id = $_POST['comment_id'];
+    // Check if liking or unliking
+    $unlike = $_POST['unlike'] == 'true' ? true : false;
+    // Check if comment present
+    $comment = $this->commentsTable->fetch($comment_id);
+    if ($comment) {
+      // Fetch current user
+      $user_id = $this->authentication->getUser()['id'];
+      // User can't like his own comment
+      if ($user_id == $comment['user_id']) {
+        $error = [
+          'msg' => 'Cannot ' . ($unlike ? 'unlike' : 'like') . ' your own comment',
+          'code' => 403
+        ];
+      }
+      // Like / Unlike comment
+      else {
+        $fields = [
+          'user_id' => $user_id,
+          'comment_id' => $comment['id']
+        ];
+
+        $action = $unlike ? 'deleteByCols' : 'save';
+        if ($this->commentsLikesTable->$action($fields)) {
+          // Fetch number of likes
+          $likes = $this->fetchLikes($comment_id);
+
+          return [
+            'json' => [
+              'comment_id' => $comment_id,
+              'comment_likes' => $likes
+            ]
+          ];
+        }
+        else {
+          $error = [
+            'msg' => 'Unable to ' . ($unlike ? 'unlike' : 'like') . ' comment',
+            'code' => 403
+          ];
+        }
+      }
+    }
+
+    // Errors
+    if (!isset($error)) {
+      $error = [
+        'msg' => 'Comment not found / Invalid request',
+        'code' => 404
+      ];
+    }
+
+    return [
+      'json' => [
+        'error' => $error
       ]
     ];
   }
